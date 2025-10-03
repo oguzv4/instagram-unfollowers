@@ -1,0 +1,71 @@
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Instagram Unfollowers — Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen p-6">
+  <div class="max-w-4xl mx-auto">
+    <header class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold">Instagram Unfollowers</h1>
+      <a href="/" class="px-3 py-2 rounded bg-white border">Girişe Dön</a>
+    </header>
+
+    <!-- Business account warning banner -->
+    <div class="mb-4 p-4 rounded-lg bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800">
+      <strong>⚠️ Önemli:</strong> Instagram API'lerinin bazı listeleri (örn. takipçi/following) yalnızca <strong>işletme/creator</strong> hesaplarında tam olarak erişilebilir. Lütfen hesabınızı işletme/creator hesabına geçiriniz. <a href="/legal.html" class="underline">Nasıl yapılır?</a>
+    </div>
+
+    <section class="mb-4 flex items-center gap-3">
+      <button id="checkBtn" class="px-4 py-2 bg-indigo-600 text-white rounded">Kullanıcıları Kontrol Et</button>
+      <div id="snapshot" class="text-sm text-gray-600"></div>
+    </section>
+
+    <main id="listArea">
+      <div id="empty" class="text-gray-600">Henüz kontrol yapılmadı. "Kullanıcıları Kontrol Et" butonuna bas.</div>
+      <div id="list" class="grid gap-3 mt-3"></div>
+    </main>
+  </div>
+
+<script>
+async function fetchUnfollowers(){
+  const res = await fetch('/api/unfollowers')
+  if(!res.ok) { alert('API hatası'); return }
+  const data = await res.json()
+  const list = document.getElementById('list')
+  const empty = document.getElementById('empty')
+  const snap = document.getElementById('snapshot')
+  list.innerHTML = ''
+  if(data.count === 0){
+    empty.textContent = 'Tespit edilen takip etmeyen yok.'
+    snap.textContent = 'Snapshot: ' + new Date(data.snapshot_at).toLocaleString()
+    return
+  }
+  empty.textContent = ''
+  snap.textContent = 'Snapshot: ' + new Date(data.snapshot_at).toLocaleString()
+  data.nonFollowers.forEach(u => {
+    const card = document.createElement('div')
+    card.className = 'flex items-center gap-3 p-3 bg-white rounded-lg shadow'
+    card.innerHTML = `
+      <img src="${u.profile_pic_url}" alt="" class="w-12 h-12 rounded-full border-2 border-gray-100" />
+      <div class="flex-1">
+        <div class="font-semibold">${u.username}</div>
+        <a href="https://instagram.com/${u.username}" target="_blank" class="text-sm text-indigo-600">Instagram'a git</a>
+      </div>
+      <button onclick="window.open('https://instagram.com/${u.username}','_blank')" class="px-3 py-1 border rounded">Takipten Çık</button>
+    `
+    list.appendChild(card)
+  })
+}
+
+document.getElementById('checkBtn').addEventListener('click', fetchUnfollowers)
+
+if(location.search.includes('mock_auth=1')){
+  fetchUnfollowers()
+}
+</script>
+</body>
+</html>
